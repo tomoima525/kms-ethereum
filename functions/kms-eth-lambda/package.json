@@ -1,0 +1,23 @@
+{
+  "name": "kms-eth-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-kms": "^3.409.0",
+    "@aws-sdk/client-secrets-manager": "^3.410.0",
+    "asn1.js": "^5.4.1",
+    "bn.js": "^5.2.1",
+    "ethers": "^6.7.1",
+    "ethers-aws-kms-signer": "^1.3.2"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.1"
+  }
+}

@@ -1,91 +1,77 @@
-# CDK lambda development template
+# kms-ethereum
 
-This is a CDK template to develop lambda functions in your isolated environment
+Sending/Signing transaction with a signer(aka Externally Owned Account) generated from a KMS key.
 
-# Why we need this?
+# Acknowledgement
 
-When you are building a lambda function using CDK in a team, your functions get overriden by other developers functions when they deploy. By having isolated CDK environment which imports external resources (e.g. DynamoDB, S3), we can safely develop our lambda functions. Once you confirmed that your function is working properly in your environment, you can copy your code to your base CDK project.
+This project is heavily inspired from the following projects:
 
-<p align="center">
-<img src="https://user-images.githubusercontent.com/6277118/179318780-e5110421-f945-40fa-acdc-514b3945d32c.png" width=800px />
-</p>
+- https://github.com/rjchow/ethers-aws-kms-signer
+- https://github.com/odanado/cloud-cryptographic-wallet
 
-# How to use
+The main difference is that this project uses the AWS SDK v3 and the latest version of the ethers library.
 
-1. Set your development Stack name
-
-- create .env file and add your setup
+# Usage
 
 ```
-YOUR_NAME=tomo
+pnpm install
 ```
 
-- When you deploy your CDK, it will be named as `DevStack${yourname}`
-
-2. Add your external resources & lambda function
-
 ```
-export class DevelopmentTemplateStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
-    // Reference your resouces
-    // See how to reference external resources https://docs.aws.amazon.com/cdk/v2/guide/resources.html
-
-    const s3Bucket = s3.Bucket.fromBucketArn(this, 'MyBucket', 'arn:aws:s3:::my-bucket-name');
-
-    // Set your lambda
-    cont yourLambda = new lambda_nodejs.NodejsFunction(this, "yourlambda", {
-      runtime: lambda.Runtime.NODEJS_16_X,
-      handler: "handler",
-      entry: path.join(`${__dirname}/../`, "functions", "yourlambda/index.ts"),
-      environment: {
-        BUCKET: props.s3Bucket.bucketName,
-      },
-    });
-
-    props.s3Bucket.grantReadWrite(yourLambda);
-
-  }
-}
+pnpm cdk synth
+pnpm cdk deploy --profile={your profile}
 ```
 
-3. Your lambda
+You can trigger lambda with the following event:
 
-- This project uses yarn 2+ workspace.
-- Add your function under `functions` (e.g. `functions/yourlambda/index.ts`)
-- you need to run `yarn install` at the root of the project so that yarn can recognize your function.
-- If you want add other dependencies, call `yarn init` under `functions/yourlambda` then `yarn add {dependecies you want to add}`
-
-4. Deploy
-
-```
-yarn cdk:deploy
-```
-
-# Tips
-
-### Accessing lambda layer
-
-You can use submodules to access the lambda layer
-
-```
-git submodule add git@github.com:yourproject/main-cdk.git main-cdk
-```
-
-Then add the path in `tsconfig.json`
+- Create Signer
 
 ```
 {
-  ...
-      "paths": {
-      "/opt/nodejs/s3": ["main-cdk/functions/layers/awsservice/nodejs/s3"]
-    }
+  "operation": "create",
+  "keyId": "3d3a13ce-df90-46f9-b8a3-e77a7e7fd687"
 }
 ```
 
-and when you update submodule
+- Sign tx
 
 ```
-git submodule update --recursive --remote --merge
+{
+  "operation": "sign",
+  "keyId": "3d3a13ce-df90-46f9-b8a3-e77a7e7fd687",
+  "to": "0x123..."
+}
 ```
 
+- Send tx
+
+```
+{
+  "operation": "send",
+  "keyId": "3d3a13ce-df90-46f9-b8a3-e77a7e7fd687",
+  "to": "0x123..."
+}
+```
+
+You can find my generated account here on Goerli:
+https://goerli.etherscan.io/address/0xc48f32a764804c3309cb365d5822a156c318bf63
+
+# Run Locally
+
+If you want to run locally, then
+
+Setup your sam local environment: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html
+
+Setup docker: https://docs.docker.com/get-docker/
+
+After runniing `pnpm cdk synth`, run below
+
+```
+
+sam local invoke -t ./cdk.out/KMSEthereum.template.json kms-eth-lambda -e ./test/send-event.json --profile={your profile}
+
+```
+
+```
+
+```

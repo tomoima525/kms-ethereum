@@ -135,12 +135,3 @@ export const determineCorrectV = async (
   }
   return { v };
 };
-
-/**
- * Sign message using ECDSA with the secp256k1 curve and SHA-256 hash algorithm.
- * it’s important to point out that the returned ECDSA signature is different every time it’s calculated, even though the same payload is being used. The reason for that is because AWS KMS doesn’t use Deterministic Digital Signature Generation (DDSG) and certain parameters in the signature calculation process are chosen random, namely the k-value.
- * Reference: https://repost.aws/questions/QU-ocp5jLZTgiBzyXN5exIfA/is-it-possible-to-use-kms-for-web3-signing
- * @param keyId
- * @param digest
- * @returns
- */

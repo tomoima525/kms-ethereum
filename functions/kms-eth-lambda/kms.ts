@@ -41,10 +41,13 @@ export const getPublicKey = async (keyId: string): Promise<any> => {
 };
 
 /**
-   * 1. a random private key (64 (hex) characters / 256 bits / 32 bytes)
-   2. Derive the public key from this private key (128 (hex) characters / 512 bits / 64 bytes)
-   3.Derive the address from this public key. (40 (hex) characters / 160 bits / 20 bytes)
-   4. Checksum encode
+ Get the public address from the KMS key
+ Step 1. Get the public key from the KMS key. Internally it does the following:
+   a. a random private key (64 (hex) characters/256 bits/32 bytes) 
+   b. Derive the public key from this private key (128 (hex) characters/512 bits/64 bytes + prefix 04) 
+
+ Step 2. Derive the address from this public key. (40 (hex) characters/160 bits/20 bytes)
+ Step 3. Checksum encode
 */
 export const getPubAddress = async (keyId: string): Promise<`0x${string}`> => {
   const command = new GetPublicKeyCommand({
@@ -58,8 +61,10 @@ export const getPubAddress = async (keyId: string): Promise<`0x${string}`> => {
   const res = EcdsaPubKey.decode(Buffer.from(publicKey), "der");
   const pubKeyBuffer = res.pubKey.data;
 
-  // The public key starts with a 0x04 prefix that needs to be removed
-  // more info: https://www.oreilly.com/library/view/mastering-ethereum/9781491971932/ch04.html
+  // The public key (65 bytes) starts with a 0x04 prefix that needs to be removed
+  // 0x04 is the uncompressed format of the public key
+  // 04 + x-coordinate (32 bytes/64 hex) + y-coordinate (32 bytes/64 hex)
+  // Reference: https://www.oreilly.com/library/view/mastering-ethereum/9781491971932/ch04.html
   const removedPrefixPubKey = pubKeyBuffer.slice(1, pubKeyBuffer.length);
   if (removedPrefixPubKey) {
     // use the last 20 bytes(40chars) of the keccak256 hex hash of the public key
